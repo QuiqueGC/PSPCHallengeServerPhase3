@@ -10,6 +10,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.net.ServerSocket;
+
+import static utils.SocketsManager.PORT;
 
 public class PanelAdmin extends JPanel{
 
@@ -25,8 +29,21 @@ public class PanelAdmin extends JPanel{
 
         PSPChallenge.frame.setTitle("Panel de control de administrador");
 
-        ConnectionThread conThread = new ConnectionThread(lblConnectionTxt);
-        conThread.start();
+        try {
+            SocketsManager.server = new ServerSocket(PORT);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        for (int i = 0; i < PSPChallenge.usersList.size(); i++) {
+            ConnectionThread conThread = new ConnectionThread(lblConnectionTxt);
+            PSPChallenge.threads.add(conThread);
+        }
+
+        for (Thread thread :
+                PSPChallenge.threads) {
+            thread.start();
+        }
     }
 
     private void addInfoLabel() {

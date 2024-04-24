@@ -17,6 +17,8 @@ import static utils.SocketsManager.PORT;
 
 public class PSPChallenge {
     public static ArrayList<User> usersList = new ArrayList<>();
+
+    public static ArrayList<Thread> threads = new ArrayList<>();
     public static User actualUser;
 
     public static JFrame frame;
@@ -31,11 +33,6 @@ public class PSPChallenge {
 
     public static void main(String[] args) {
 
-        try {
-            SocketsManager.server = new ServerSocket(PORT);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         frame = new JFrame("Gestión de usuarios y procesos");
 
