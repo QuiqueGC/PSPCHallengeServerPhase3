@@ -14,6 +14,7 @@ public class ConnectionThread extends Thread {
     boolean isClientConnected;
     boolean isLoggedIn;
 
+    boolean isLogin = true;
     Socket socketClient;
     UserConnected userOfThisThread;
 
@@ -83,6 +84,7 @@ public class ConnectionThread extends Thread {
 
             if(socketClient.isClosed()){
                 isLoggedIn = false;
+                PSPChallenge.usersConnected.remove(userOfThisThread);
             }
 
             System.out.println("ENVÍA SI EL ADMIN SIGUE LOGEADO");
@@ -110,6 +112,7 @@ public class ConnectionThread extends Thread {
                         "<html>Conexión establecida!<br><br>" +
                                 " IP del cliente: " + socketClient.getInetAddress().getHostAddress() + "<html>");
             }
+            isLogin = true;
         }
     }
 
@@ -206,6 +209,10 @@ public class ConnectionThread extends Thread {
         System.out.println("SALIÓ DEL BUCLE DE LOGIN");
         if(PSPChallenge.userConnected != null && PSPChallenge.userConnected.equals(userOfThisThread)){
             lblConnectionTxt.setText(PSPChallenge.userConnected.showData());
+        }
+        if(isLogin){
+            JOptionPane.showMessageDialog(null, userOfThisThread.getName() + " ha iniciado sesión", "Información", JOptionPane.INFORMATION_MESSAGE);
+            isLogin = false;
         }
     }
 
