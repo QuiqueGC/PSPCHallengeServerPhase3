@@ -70,7 +70,10 @@ public class PanelAdmin extends JPanel{
         addingNewAdminButton();
 
         addingDeleteOrModifyButton(this);
+
+        addingDeviceExplorerButton(this);
     }
+
 
     private void addingExecuteProgButton(JPanel panelAdmin) {
         JButton executingProgButton = new JButton();
@@ -145,6 +148,25 @@ public class PanelAdmin extends JPanel{
 
                 PSPChallenge.adminLogout = true;
                 JOptionPane.showMessageDialog(null, "Solicitud de cierre de sesión en proceso. Se ejecutará al finalizar el ciclo, para no perder información", "Información", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+    }
+
+    private void addingDeviceExplorerButton(PanelAdmin panelAdmin) {
+        JButton deviceExplorarButton = new JButton();
+        deviceExplorarButton.setText("Conexiones");
+        deviceExplorarButton.setSize(150, 75);
+        deviceExplorarButton.setLocation(
+                445,
+                320);
+        this.add(deviceExplorarButton);
+        deviceExplorarButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+
+                PSPChallenge.frame.setContentPane(new PanelDeleteModifyUsers(panelAdmin));
+
             }
         });
     }

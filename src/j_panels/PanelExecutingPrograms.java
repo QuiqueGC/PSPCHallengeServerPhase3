@@ -70,7 +70,8 @@ public class PanelExecutingPrograms extends JPanel {
             });
         } else {
             JLabel lblNoPrograms = new JLabel();
-            lblNoPrograms.setText("Todavía no se han cargado los programas en ejecución del usuario. Vuelva al panel Main");
+            lblNoPrograms.setText("<html>Todavía no se han cargado los programas en ejecución del usuario.<br><br>" +
+                    "Vuelva al panel de administrador.<html>");
             lblNoPrograms.setSize(500, 300);
             lblNoPrograms.setForeground(Color.white);
             lblNoPrograms.setLocation(this.getWidth() / 2 - lblNoPrograms.getWidth() / 2, 20);
