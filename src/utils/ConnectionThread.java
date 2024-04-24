@@ -4,6 +4,7 @@ import data_classes.User;
 import data_classes.UserConnected;
 import j_panels.PanelMain;
 import p_s_p_challenge.PSPChallenge;
+
 import javax.swing.*;
 import java.net.Socket;
 
@@ -11,14 +12,12 @@ import java.net.Socket;
 public class ConnectionThread extends Thread {
 
     private final JLabel lblConnectionTxt;
-    boolean isClientConnected;
-    boolean isLoggedIn;
-
-    boolean isLogin = true;
+    boolean isClientConnected, isLoggedIn;
+    boolean hasToShowLoginMsg = true;
     Socket socketClient;
     UserConnected userOfThisThread;
 
-    public ConnectionThread(JLabel lblConnectionTxt){
+    public ConnectionThread(JLabel lblConnectionTxt) {
         super();
         this.lblConnectionTxt = lblConnectionTxt;
         this.userOfThisThread = new UserConnected();
@@ -30,69 +29,56 @@ public class ConnectionThread extends Thread {
         PSPChallenge.adminLogout = false;
         isClientConnected = false;
 
-        do{
-            if(socketClient != null){
+        do {
+            if (socketClient != null) {
                 isClientConnected = !socketClient.isClosed();
             }
 
-            System.out.println("EMPIEZA EL BUCLE");
-            System.out.println("VALOR DEL BOOLEAN IS_LOGGED_IN -> " + isLoggedIn);
-            System.out.println("VALOR DEL BOOLEAN IS_CLIENT_CONNECTED -> " + isClientConnected);
-            if(!isClientConnected){
-
-                System.out.println("NO ESTÁ CONECTADO, ASÍ QUE SE CONECTA");
+            if (!isClientConnected) {
                 establishConnection();
-
                 isClientConnected = true;
             }
-            if(!socketClient.isClosed()){
-            System.out.println("CHEQUEA EL LOGIN");
+
+            if (!socketClient.isClosed()) {
                 awaitForClientLogin();
             }
 
-            if(!socketClient.isClosed()){
-            System.out.println("COGE PROGRAMAS");
-            SocketsManager.getPrograms(socketClient);
-            if(userOfThisThread.equals(PSPChallenge.userConnected)){
-                lblConnectionTxt.setText(PSPChallenge.userConnected.showData());
-            }
+            if (!socketClient.isClosed()) {
+                SocketsManager.getPrograms(socketClient);
+                if (userOfThisThread.equals(PSPChallenge.userConnected)) {
+                    lblConnectionTxt.setText(PSPChallenge.userConnected.showData());
+                }
 
             }
 
-            if(!socketClient.isClosed()) {
-            System.out.println("COGE PROCESOS");
+            if (!socketClient.isClosed()) {
                 SocketsManager.getProcesses(socketClient);
-                if(userOfThisThread.equals(PSPChallenge.userConnected)) {
+                if (userOfThisThread.equals(PSPChallenge.userConnected)) {
                     lblConnectionTxt.setText(PSPChallenge.userConnected.showData());
                 }
             }
 
-            if(!socketClient.isClosed()) {
-            System.out.println("ENVÍA PETICIÓN A CLIENTE");
+            if (!socketClient.isClosed()) {
                 sendOrderToClient();
             }
 
-            if(!socketClient.isClosed()) {
-            System.out.println("RECIBE PETICIÓN DE CLIENTE");
+            if (!socketClient.isClosed()) {
                 receiveOrderFromClient();
             }
 
-            if(!socketClient.isClosed()) {
-            System.out.println("CHEQUEA SI ESTÁ LOGEADO");
+            if (!socketClient.isClosed()) {
                 checkIfClientStillConnected();
             }
 
-            if(socketClient.isClosed()){
+            if (socketClient.isClosed()) {
                 isLoggedIn = false;
                 PSPChallenge.usersConnected.remove(userOfThisThread);
             }
 
-            System.out.println("ENVÍA SI EL ADMIN SIGUE LOGEADO");
             SocketsManager.sendAdminConnection(socketClient);
 
-        }while (!PSPChallenge.adminLogout);
+        } while (!PSPChallenge.adminLogout);
 
-        System.out.println("EL ADMIN HA HECHO LOGOUT Y SE HA SALIDO DEL BUCLE PRINCIPAL DEL THREAD");
         SocketsManager.closeClient(socketClient);
         PSPChallenge.frame.setContentPane(new PanelMain());
         PSPChallenge.actualUser = null;
@@ -103,16 +89,21 @@ public class ConnectionThread extends Thread {
      */
     private void checkIfClientStillConnected() {
         isLoggedIn = SocketsManager.checkUserConnection(socketClient);
-        if(!isLoggedIn){
-            JOptionPane.showMessageDialog(null, userOfThisThread.getName() + " ha cerrado sesión", "Información", JOptionPane.INFORMATION_MESSAGE);
+        if (!isLoggedIn) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    userOfThisThread.getName() + " ha cerrado sesión", "Información",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
             PSPChallenge.usersConnected.remove(userOfThisThread);
             userOfThisThread.clearDataAfterOrder();
-            if(userOfThisThread.equals(PSPChallenge.userConnected)) {
+
+            if (userOfThisThread.equals(PSPChallenge.userConnected)) {
                 lblConnectionTxt.setText(
                         "<html>Conexión establecida!<br><br>" +
                                 " IP del cliente: " + socketClient.getInetAddress().getHostAddress() + "<html>");
             }
-            isLogin = true;
+            hasToShowLoginMsg = true;
         }
     }
 
@@ -123,7 +114,7 @@ public class ConnectionThread extends Thread {
     private void receiveOrderFromClient() {
         String clientOrder = SocketsManager.getString(socketClient);
         int indexToDelete;
-        if(clientOrder.equals("changeUser")){
+        if (clientOrder.equals("changeUser")) {
 
             User userToChange = SocketsManager.getUserFromClient(socketClient);
 
@@ -138,13 +129,14 @@ public class ConnectionThread extends Thread {
 
     /**
      * Busca al usuario en la lista de usuarios y obtiene su index
+     *
      * @return int con el index del usuario
      */
     private int lookingForUser() {
         int indexToDelete = -1;
         for (User user :
                 PSPChallenge.usersList) {
-            if(user.getName().equals(userOfThisThread.getName())){
+            if (user.getName().equals(userOfThisThread.getName())) {
                 indexToDelete = PSPChallenge.usersList.indexOf(user);
             }
         }
@@ -153,7 +145,8 @@ public class ConnectionThread extends Thread {
 
     /**
      * Actualiza la lista de usuarios y sobreescribe el fichero
-     * @param userToChange User que será modificado en la lista
+     *
+     * @param userToChange  User que será modificado en la lista
      * @param indexToDelete int con el índice del usuario que hay que modificar
      */
     private void updateUser(User userToChange, int indexToDelete) {
@@ -169,11 +162,10 @@ public class ConnectionThread extends Thread {
     private void showAndSendInfo() {
         JOptionPane.showMessageDialog(null, userOfThisThread.getName() + " ha cambiado de nombre o contraseña", "Información", JOptionPane.INFORMATION_MESSAGE);
         SocketsManager.sendString("Usuario actualizado con éxito", socketClient);
-        if(userOfThisThread.equals(PSPChallenge.userConnected)) {
+        if (userOfThisThread.equals(PSPChallenge.userConnected)) {
             lblConnectionTxt.setText(userOfThisThread.showData());
         }
     }
-
 
 
     /**
@@ -183,7 +175,7 @@ public class ConnectionThread extends Thread {
 
         SocketsManager.sendString(userOfThisThread.getOrderToClient(), socketClient);
 
-        if(userOfThisThread.getOrderToClient().equals("stopProcess")) {
+        if (userOfThisThread.getOrderToClient().equals("stopProcess")) {
 
             String response;
             SocketsManager.sendString(userOfThisThread.getProcessPID(), socketClient);
@@ -191,7 +183,7 @@ public class ConnectionThread extends Thread {
             JOptionPane.showMessageDialog(null, response, "Información", JOptionPane.INFORMATION_MESSAGE);
             userOfThisThread.clearDataAfterOrder();
 
-            if(userOfThisThread.equals(PSPChallenge.userConnected)) {
+            if (userOfThisThread.equals(PSPChallenge.userConnected)) {
                 lblConnectionTxt.setText(PSPChallenge.userConnected.showData());
             }
         }
@@ -201,18 +193,16 @@ public class ConnectionThread extends Thread {
      * Espera a que se conecte un cliente
      */
     private void awaitForClientLogin() {
-        while(!isLoggedIn && !socketClient.isClosed()){
-            System.out.println("NO ESTÁ LOGEADO");
+        while (!isLoggedIn && !socketClient.isClosed()) {
             isLoggedIn = SocketsManager.getRegisterOrLoginPetition(socketClient.getInetAddress().getHostAddress(), userOfThisThread, socketClient);
         }
 
-        System.out.println("SALIÓ DEL BUCLE DE LOGIN");
-        if(PSPChallenge.userConnected != null && PSPChallenge.userConnected.equals(userOfThisThread)){
+        if (PSPChallenge.userConnected != null && PSPChallenge.userConnected.equals(userOfThisThread)) {
             lblConnectionTxt.setText(PSPChallenge.userConnected.showData());
         }
-        if(isLogin){
+        if (hasToShowLoginMsg) {
             JOptionPane.showMessageDialog(null, userOfThisThread.getName() + " ha iniciado sesión", "Información", JOptionPane.INFORMATION_MESSAGE);
-            isLogin = false;
+            hasToShowLoginMsg = false;
         }
     }
 
@@ -230,8 +220,7 @@ public class ConnectionThread extends Thread {
                             " IP del cliente: " + socketClient.getInetAddress().getHostAddress() + "<html>");
 
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println("Error estableciendo conexión");
         }
     }
-
 }
