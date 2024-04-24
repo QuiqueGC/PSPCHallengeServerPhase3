@@ -4,10 +4,7 @@ import data_classes.User;
 import data_classes.UserConnected;
 import j_panels.PanelMain;
 import p_s_p_challenge.PSPChallenge;
-
 import javax.swing.*;
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 
@@ -105,8 +102,8 @@ public class ConnectionThread extends Thread {
     private void checkIfClientStillConnected() {
         isLoggedIn = SocketsManager.checkUserConnection(socketClient);
         if(!isLoggedIn){
-            JOptionPane.showMessageDialog(null, "El usuario ha cerrado sesión", "Información", JOptionPane.INFORMATION_MESSAGE);
-            //PSPChallenge.userConnected.clearDataAfterOrder();
+            JOptionPane.showMessageDialog(null, userOfThisThread.getName() + " ha cerrado sesión", "Información", JOptionPane.INFORMATION_MESSAGE);
+            PSPChallenge.usersConnected.remove(userOfThisThread);
             userOfThisThread.clearDataAfterOrder();
             if(userOfThisThread.equals(PSPChallenge.userConnected)) {
                 lblConnectionTxt.setText(
@@ -144,7 +141,6 @@ public class ConnectionThread extends Thread {
         int indexToDelete = -1;
         for (User user :
                 PSPChallenge.usersList) {
-            //if(user.getName().equals(PSPChallenge.userConnected.getName())){
             if(user.getName().equals(userOfThisThread.getName())){
                 indexToDelete = PSPChallenge.usersList.indexOf(user);
             }
@@ -161,7 +157,6 @@ public class ConnectionThread extends Thread {
         PSPChallenge.usersList.remove(indexToDelete);
         PSPChallenge.usersList.add(userToChange);
         FilesRW.overwritingFile();
-        //PSPChallenge.userConnected.setName(userToChange.getName());
         userOfThisThread.setName(userToChange.getName());
     }
 
@@ -169,10 +164,9 @@ public class ConnectionThread extends Thread {
      * Muestra el diálogo de información de actualización de usuario y le envía la respuesta al cliente
      */
     private void showAndSendInfo() {
-        JOptionPane.showMessageDialog(null, "El cliente ha cambiado de nombre o contraseña", "Información", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(null, userOfThisThread.getName() + " ha cambiado de nombre o contraseña", "Información", JOptionPane.INFORMATION_MESSAGE);
         SocketsManager.sendString("Usuario actualizado con éxito", socketClient);
         if(userOfThisThread.equals(PSPChallenge.userConnected)) {
-            //lblConnectionTxt.setText(PSPChallenge.userConnected.showData());
             lblConnectionTxt.setText(userOfThisThread.showData());
         }
     }
@@ -184,19 +178,16 @@ public class ConnectionThread extends Thread {
      */
     private void sendOrderToClient() {
 
-        //SocketsManager.sendString(PSPChallenge.userConnected.getOrderToClient());
         SocketsManager.sendString(userOfThisThread.getOrderToClient(), socketClient);
 
-        //if(PSPChallenge.userConnected.getOrderToClient().equals("stopProcess")) {
         if(userOfThisThread.getOrderToClient().equals("stopProcess")) {
 
             String response;
-            //SocketsManager.sendString(PSPChallenge.userConnected.getProcessPID());
             SocketsManager.sendString(userOfThisThread.getProcessPID(), socketClient);
             response = SocketsManager.getString(socketClient);
             JOptionPane.showMessageDialog(null, response, "Información", JOptionPane.INFORMATION_MESSAGE);
-            //PSPChallenge.userConnected.clearDataAfterOrder();
             userOfThisThread.clearDataAfterOrder();
+
             if(userOfThisThread.equals(PSPChallenge.userConnected)) {
                 lblConnectionTxt.setText(PSPChallenge.userConnected.showData());
             }
@@ -213,7 +204,6 @@ public class ConnectionThread extends Thread {
         }
 
         System.out.println("SALIÓ DEL BUCLE DE LOGIN");
-        //if(PSPChallenge.userConnected != null){
         if(PSPChallenge.userConnected != null && PSPChallenge.userConnected.equals(userOfThisThread)){
             lblConnectionTxt.setText(PSPChallenge.userConnected.showData());
         }

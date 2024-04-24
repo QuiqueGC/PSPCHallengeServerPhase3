@@ -65,9 +65,7 @@ public abstract class SocketsManager {
                    userOfThread.setName(foundUser.getName());
                    userOfThread.setIp(ipClient);
                    PSPChallenge.usersConnected.add(userOfThread);
-                   // TODO: 24/04/2024 Habrá que borrar la siguiente
-                   //  línea cuando esté todo ok o quizás se puede dejar
-                   //   con el siguiente if
+
                    if(PSPChallenge.userConnected == null){
                        PSPChallenge.userConnected = userOfThread;
                    }
