@@ -165,7 +165,7 @@ public class PanelAdmin extends JPanel{
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
 
-                PSPChallenge.frame.setContentPane(new PanelDeleteModifyUsers(panelAdmin));
+                PSPChallenge.frame.setContentPane(new PanelConnectedDevices(panelAdmin, lblConnectionTxt));
 
             }
         });
