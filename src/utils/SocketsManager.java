@@ -14,14 +14,14 @@ import java.util.ArrayList;
 public abstract class SocketsManager {
 
     public static final int PORT = 5002;
-    public static Socket socketClient;
+
     public static ServerSocket server;
 
 
     /**
      * Recoge la petición de registro o login del usuario
      */
-    public static boolean getRegisterOrLoginPetition(String ipClient) {
+    public static boolean getRegisterOrLoginPetition(String ipClient, UserConnected userOfThread, Socket socketClient) {
         String petition;
         boolean isLoggedIn = false;
         try {
@@ -30,15 +30,15 @@ public abstract class SocketsManager {
             petition = (String) ois.readObject();
             switch (petition){
                 case "register":
-                    tryToRegister();
+                    tryToRegister(socketClient);
                     break;
                 case "login":
-                    isLoggedIn = tryToLogin(ipClient);
+                    isLoggedIn = tryToLogin(ipClient, userOfThread, socketClient);
                     break;
             }
         } catch (Exception e) {
             System.out.println(e);
-            closeClient();
+            closeClient(socketClient);
         }
 
         return isLoggedIn;
@@ -49,26 +49,34 @@ public abstract class SocketsManager {
      * @param ipClient String con la ip del cliente, para mostrarla en pantalla
      * @return Boolean indicando si se ha podido hacer el login
      */
-    private static boolean tryToLogin(String ipClient) {
+    private static boolean tryToLogin(String ipClient, UserConnected userOfThread, Socket socketClient) {
         boolean loginSuccessful = false;
-        User userToLogin = getUserFromClient();
+        User userToLogin = getUserFromClient(socketClient);
         User foundUser;
         String msg;
         if(userToLogin != null){
            foundUser = SpellBook.lookingForUser(userToLogin.getName());
            if(foundUser != null){
                msg = SpellBook.loginClient(userToLogin.getPasswd(), foundUser);
-               sendString(msg);
+               sendString(msg, socketClient);
                if(msg.equals("Login realizado con éxito")){
                    loginSuccessful = true;
-                   sendUser(foundUser);
-                   PSPChallenge.userConnected = new UserConnected(foundUser.getName(), ipClient);
+                   sendUser(foundUser, socketClient);
+                   userOfThread.setName(foundUser.getName());
+                   userOfThread.setIp(ipClient);
+                   PSPChallenge.usersConnected.add(userOfThread);
+                   // TODO: 24/04/2024 Habrá que borrar la siguiente
+                   //  línea cuando esté todo ok o quizás se puede dejar
+                   //   con el siguiente if
+                   if(PSPChallenge.userConnected == null){
+                       PSPChallenge.userConnected = userOfThread;
+                   }
                }
            }else{
-               sendString("El nombre de usuario no está registrado");
+               sendString("El nombre de usuario no está registrado", socketClient);
            }
         }else {
-            sendString("Ha habido un problema de conexión");
+            sendString("Ha habido un problema de conexión", socketClient);
         }
         return loginSuccessful;
     }
@@ -76,19 +84,19 @@ public abstract class SocketsManager {
     /**
      * Chequea si el usuario ya existe y, en caso negativo, lo registra
      */
-    private static void tryToRegister() {
-        User userToRegister = getUserFromClient();
+    private static void tryToRegister(Socket socketClient) {
+        User userToRegister = getUserFromClient(socketClient);
         boolean alreadyExist;
         if (userToRegister != null){
             alreadyExist = SpellBook.checkingIfUserExist(userToRegister.getName());
             if(!alreadyExist){
                 SpellBook.creatingNewUser(userToRegister.getName(), userToRegister.getPasswd(), userToRegister.getUserType());
-                sendString("Usuario registrado con éxito");
+                sendString("Usuario registrado con éxito", socketClient);
             }else{
-                sendString("Ya existe un usuario registrado con ese nombre");
+                sendString("Ya existe un usuario registrado con ese nombre", socketClient);
             }
         }else {
-            sendString("Ha habido un problema de conexión");
+            sendString("Ha habido un problema de conexión", socketClient);
         }
     }
 
@@ -97,11 +105,11 @@ public abstract class SocketsManager {
      * Envía una respuesta al cliente
      * @param response String con la respuesta
      */
-    public static void sendString(String response) {
+    public static void sendString(String response, Socket socketClient) {
         try {
             new ObjectOutputStream(socketClient.getOutputStream()).writeObject(response);
         } catch (IOException ex) {
-            closeClient();
+            closeClient(socketClient);
             System.out.println("excepción IOE");
         }
     }
@@ -111,7 +119,7 @@ public abstract class SocketsManager {
      *
      * @return String con la respuesta del server
      */
-    public static String getString() {
+    public static String getString(Socket socketClient) {
         String response = "";
         try {
             InputStream is = socketClient.getInputStream();
@@ -120,7 +128,7 @@ public abstract class SocketsManager {
 
         } catch (Exception e) {
 
-            closeClient();
+            closeClient(socketClient);
             System.out.println(e);
         }
 
@@ -131,7 +139,7 @@ public abstract class SocketsManager {
      * Extrae el usuario que está intentando hacer login
      * @return User con nombre y psswd del usuario
      */
-    public static User getUserFromClient() {
+    public static User getUserFromClient(Socket socketClient) {
         User user = null;
         try {
             InputStream is = socketClient.getInputStream();
@@ -140,7 +148,7 @@ public abstract class SocketsManager {
 
         } catch (Exception e) {
 
-            closeClient();
+            closeClient(socketClient);
             System.out.println(e);
         }
         return user;
@@ -152,14 +160,14 @@ public abstract class SocketsManager {
      *
      * @param user User que enviará al server
      */
-    public static void sendUser(User user) {
+    public static void sendUser(User user, Socket socketClient) {
         try {
 
             new ObjectOutputStream(socketClient.getOutputStream()).writeObject(user);
 
         } catch (IOException ex) {
 
-            closeClient();
+            closeClient(socketClient);
             System.out.println("excepción IOE");
         }
     }
@@ -167,7 +175,7 @@ public abstract class SocketsManager {
     /**
      * Obtiene la lista de programas del cliente
      */
-    public static void getPrograms() {
+    public static void getPrograms(Socket socketClient) {
 
         try {
             InputStream is = socketClient.getInputStream();
@@ -176,7 +184,7 @@ public abstract class SocketsManager {
             PSPChallenge.userConnected.setLoadingPrograms("Cargados con éxito");
 
         } catch (Exception e) {
-            closeClient();
+            closeClient(socketClient);
             System.out.println("Error cogiendo el arrayList de programas");
             System.out.println(e);
         }
@@ -186,7 +194,7 @@ public abstract class SocketsManager {
     /**
      * Obtiene la lista de procesos del cliente
      */
-    public static void getProcesses() {
+    public static void getProcesses(Socket socketClient) {
 
         try {
             InputStream is = socketClient.getInputStream();
@@ -195,7 +203,7 @@ public abstract class SocketsManager {
             PSPChallenge.userConnected.setLoadingProcess("Cargados con éxito");
 
         } catch (Exception e) {
-            closeClient();
+            closeClient(socketClient);
             System.out.println("Error cogiendo el arrayList de procesos");
             System.out.println(e);
         }
@@ -205,7 +213,7 @@ public abstract class SocketsManager {
      * Chequea si el cliente sigue logeado
      * @return boolean con el estado del login/logout
      */
-    public static boolean checkUserConnection(){
+    public static boolean checkUserConnection(Socket socketClient){
         boolean userLoggedIn = true;
         try {
             InputStream is = socketClient.getInputStream();
@@ -214,7 +222,7 @@ public abstract class SocketsManager {
             userLoggedIn = dis.readBoolean();
 
         } catch (Exception e) {
-            closeClient();
+            closeClient(socketClient);
             System.out.println("Error cogiendo el boolean de login");
             System.out.println(e);
         }
@@ -222,7 +230,7 @@ public abstract class SocketsManager {
         return  userLoggedIn;
     }
 
-    public static void sendAdminConnection() {
+    public static void sendAdminConnection(Socket socketClient) {
         System.out.println("VALOR DEL BOOLEAN ADMIN_LOGOUT -> " + PSPChallenge.adminLogout);
         try {
             new DataOutputStream(socketClient.getOutputStream()).writeBoolean(PSPChallenge.adminLogout);
@@ -235,7 +243,7 @@ public abstract class SocketsManager {
 
 
 
-    public static void closeClient() {
+    public static void closeClient(Socket socketClient) {
         try{
             socketClient.close();
             System.out.println("Conexión con cliente cerrada");
@@ -250,7 +258,7 @@ public abstract class SocketsManager {
 
     public static void closeServer() {
         try{
-            socketClient.close();
+            //socketClient.close();
             server.close();
             System.out.println("Conexión con cliente cerrada");
             System.out.println("Servidor cerrado");

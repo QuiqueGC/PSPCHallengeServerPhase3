@@ -25,6 +25,19 @@ public class UserConnected {
         processPID = "";
     }
 
+    public UserConnected() {
+        this.name = "";
+        this.ip = "";
+        loadingProcess = "Cargando...";
+        loadingPrograms = "Cargando...";
+        orderToClient = "";
+        processPID = "";
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
     public String getProcessPID() {
         return processPID;
     }

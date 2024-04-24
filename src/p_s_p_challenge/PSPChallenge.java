@@ -19,6 +19,8 @@ public class PSPChallenge {
     public static ArrayList<User> usersList = new ArrayList<>();
 
     public static ArrayList<Thread> threads = new ArrayList<>();
+
+    public static ArrayList<UserConnected> usersConnected = new ArrayList<>();
     public static User actualUser;
 
     public static JFrame frame;
