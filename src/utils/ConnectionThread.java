@@ -118,12 +118,13 @@ public class ConnectionThread extends Thread {
 
             User userToChange = SocketsManager.getUserFromClient(socketClient);
 
-            indexToDelete = lookingForUser();
 
-            updateUser(userToChange, indexToDelete);
+            synchronized (PSPChallenge.usersList){
+                indexToDelete = lookingForUser();
+                updateUser(userToChange, indexToDelete);
+            }
 
             showAndSendInfo();
-
         }
     }
 
@@ -150,10 +151,15 @@ public class ConnectionThread extends Thread {
      * @param indexToDelete int con el índice del usuario que hay que modificar
      */
     private void updateUser(User userToChange, int indexToDelete) {
-        PSPChallenge.usersList.remove(indexToDelete);
-        PSPChallenge.usersList.add(userToChange);
-        FilesRW.overwritingFile();
-        userOfThisThread.setName(userToChange.getName());
+        if(indexToDelete != -1){
+            PSPChallenge.usersList.remove(indexToDelete);
+            PSPChallenge.usersList.add(userToChange);
+            FilesRW.overwritingFile();
+            userOfThisThread.setName(userToChange.getName());
+        }else{
+            JOptionPane.showMessageDialog(null, "No se ha podido sobreescribir el usuario", "Información", JOptionPane.INFORMATION_MESSAGE);
+        }
+
     }
 
     /**

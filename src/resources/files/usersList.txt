@@ -1,7 +1,6 @@
 0;root;$2a$10$zokYGau0Hkf5yXUQCf8NOuP5QCja0E7L1VZHQicbzIIdSFB/GoPV.
-1;p;$2a$10$c21LZvDeoyE5ksVF0dtsN.ZwBIscpG2lMKumZLGpQW4xkqKqD9rWG
 1;quique;$2a$10$Py.h9i2CZ9zy3UWXnpLwhO.DVDtbOY1a6jpcfg9v8VLU.AlFuAOsO
-2;lala;$2a$10$yuRuVz2lkvWYT.FSEWFtUe1J.ETS1G1xur5/aL7j0VZh2DXYpSBxq
-2;komodoro;$2a$10$cDbTnPTfwBRKJwloztab8OBO4r0Ss2BlQooNyScM6DudfCFbX.qJe
-2;polaco;$2a$10$OAg1bo0Th36L7KnlE5xB6.YY/YJzCOt.n7sLZvIp8pw4vkmptNlJK
-2;j;$2a$10$KwEpKaPvujrMPAizPqf0Ueg6JMwpXGZVbcs/XyJkwbb2eyhCMrUdW
+2;jo;$2a$10$yy6x01tFwYnN15gdnFIMF.NP09lsHMMLkyxrpx3n6L0GMveag.bGa
+2;kk;$2a$10$Ax6jYgi10Br1yTjbD2jGTOp/t9X28qsV3MoInzq7DAzx0SKVyBX8e
+2;p;$2a$10$lRf1rcgu4E/mmd8WdoC0dOkDb7f.G5p8vr93vEB3xBnnk5PD3l6Q.
+2;j;$2a$10$OQq5/kbs67DdPVgq6F5ivubMIwh/HRBAfiEHoyTpynnh0oprGihQ2
